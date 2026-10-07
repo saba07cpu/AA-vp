@@ -2,10 +2,10 @@ const express = require('express');
 const dateTimeET = require('./src/dateTimeET');
 const fs = require('fs').promises;
 const bodyparser= require('body-parser');
-
+const mysql = require('mysql2/promise')
 const textRef = 'public/txt/vanasonad.txt';
 const regTextRef = 'public/txt/visits.txt';
-
+require('dotenv').config();
 
 //käivitan express funktsiooni ja tähistan töötava asja nimega "app"
 const app = express();
@@ -91,5 +91,81 @@ app.get('/visitlog', async (req, res) => {
 		res.render('visitlog', { lastVisitInfo: 'Külastuste faili lugemisel tekkis viga või fail on tühi.' });
 	}
 });
-
+app.get('/eestifilm', (req, res)=>{
+	res.render('eestifilm');
+	
+});
+app.get('/eestifilm/film_inimesed', async (req, res)=>{
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST, 
+			user: process.env.DB_USER, 
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+		//defineerime sql päringu
+		let sqlReq = 'SELECT * FROM person';
+		//käivitame päringu
+		const [sqlRes] = await conn.execute(sqlReq);
+		console.log(sqlRes);
+		res.render('film_inimesed', {personList: sqlRes});
+	}
+	catch(err){
+		console.log('Andmebaasiga suhtlemise viga: '+ err)
+		res.render('film_inimesed', {personList: []});
+	}
+	finally {
+		if(conn) {
+			await conn.end();
+		}
+});
+app.get('/eestifilm/lisa_film_inimesed', (req, res)=>{
+	res.render('lisa_film_inimesed', {notice: 'Ootan sisestust.'});
+	
+});
+app.post('/eestifilm/lisa_film_inimesed', async (req, res)=>{
+	console.log(req.body);
+	//kontrollime andmeid
+	let deceasedDate = null;
+	if(req.body.deceasedInput!= ''){
+		deceasedDate = req.body.decasedInput;
+	}
+	
+	//sünnikuupäeva võrdlmeine
+	const bornDate = new Date(req.body.bornInput);
+	const timeNow = new Date();
+	
+	if(!req.body.firstNameInput || !req.body.lastNameInput || !req.body.bornInput || isNaN(bornDate.getTime()) || bornDate > timeNow){
+		console.log("Andmed pole korrektsed.");
+		return res.render('lisa_film_inimesed', {notice: 'Sisestatud andmed pole korrektsed.'});
+	
+	}
+	let conn;
+	try{
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST, 
+			user: process.env.DB_USER, 
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+		let sqlReq = 'INSERT INTO person (first_name, last_name, born, deceased) VALUES (?,?,?,?)';
+		await conn.execute(sqlReq, [
+			req.body.firstNameInput, 
+			req.body.lastNameInput,
+			req.body.bornInput,
+			deceasedDate
+		])
+		res.render('lisa_film_inimesed', {notice: req.body.firstNameInput + ' ' + req.body.lastNameInput + ' ' + 'andmebaasi salvestatud.'});
+	}
+	catch(err){
+		console.log('Andmebaasiga suhtlemise viga: '+ err)
+		res.render('lisa_film_inimesed', {notice: 'Tekkis viga ja andmeid ei salvestatud.'});
+	}
+	finally {
+		if(conn) {
+			await conn.end();
+		}
+	}
+});
 app.listen(5317); 

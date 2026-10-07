@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+	<meta charset="utf-8">
+	<title>Saba Sozashvili, veebiprogrammeerimine</title>
+	<style>img { max-width: 400px; height: auto; }</style>
+</head>
+<body>
+	<img src="../pics/veebiprogrammeerimine_2026_AA.png" alt="banner">	<h1>Eesti film</h1>
+	 <p>Siit leiab infot Eesti filmidega seotud inimeste kohta </p>
+	
+	
+
+	<ul>
+		<li><a href="/">Avalehele</a></li>
+		<li><a href="/eestifilm">Eesti filmi avalehele</a></li>
+	</ul>
+	<hr>
+	<h2>Siit andmebaasist leitavad filmiinimesed</h2>
+	<ol> 
+		<% personList.forEach(function(person){%>
+		<li><%= person.first_name %> <%= person.last_name %>, sündinud <%= person.born %>.</li>
+		<% }); %> 
+	</ol>
+	<hr>
+</body>
+</html>

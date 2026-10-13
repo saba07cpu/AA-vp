@@ -95,6 +95,7 @@ app.get('/eestifilm', (req, res)=>{
 	res.render('eestifilm');
 	
 });
+
 app.get('/eestifilm/film_inimesed', async (req, res)=>{
 	let conn;
 	try {
@@ -119,51 +120,225 @@ app.get('/eestifilm/film_inimesed', async (req, res)=>{
 		if(conn) {
 			await conn.end();
 		}
-});
-app.get('/eestifilm/lisa_film_inimesed', (req, res)=>{
-	res.render('lisa_film_inimesed', {notice: 'Ootan sisestust.'});
-	
-});
-app.post('/eestifilm/lisa_film_inimesed', async (req, res)=>{
-	console.log(req.body);
-	//kontrollime andmeid
-	let deceasedDate = null;
-	if(req.body.deceasedInput!= ''){
-		deceasedDate = req.body.decasedInput;
 	}
-	
-	//sünnikuupäeva võrdlmeine
-	const bornDate = new Date(req.body.bornInput);
-	const timeNow = new Date();
-	
-	if(!req.body.firstNameInput || !req.body.lastNameInput || !req.body.bornInput || isNaN(bornDate.getTime()) || bornDate > timeNow){
-		console.log("Andmed pole korrektsed.");
-		return res.render('lisa_film_inimesed', {notice: 'Sisestatud andmed pole korrektsed.'});
-	
+});
+app.get('/eestifilm/lisa_film_inimesed', (req, res) => {
+	res.render('lisa_film_inimesed', {
+		notice: 'Ootan sisestust.',
+		firstNameInput: null,
+		lastNameInput: null,
+		bornInput: null,
+		deceasedInput: null
+	});
+});
+
+app.post('/eestifilm/lisa_film_inimesed', async (req, res) => {
+	const firstName = req.body.firstNameInput ? req.body.firstNameInput.trim() : '';
+	const lastName = req.body.lastNameInput ? req.body.lastNameInput.trim() : '';
+	const bornDateText = req.body.bornInput;
+	const deceasedDateText = req.body.deceasedInput;
+
+	let notice = '';
+
+	if (!firstName) {
+		notice = 'Eesnimi on sisestamata!';
+	} else if (!lastName) {
+		notice = 'Perekonnanimi on sisestamata!';
+	} else if (!bornDateText) {
+		notice = 'Sünnikuupäev on sisestamata!';
+	} else {
+		const bornDate = new Date(bornDateText);
+		const timeNow = new Date();
+
+		if (isNaN(bornDate.getTime())) {
+			notice = 'Sünnikuupäev ei ole korrektne!';
+		} else if (bornDate > timeNow) {
+			notice = 'Sünnikuupäev ei saa olla tulevikus!';
+		} else if (deceasedDateText !== '') {
+			const deceasedDate = new Date(deceasedDateText);
+			if (isNaN(deceasedDate.getTime())) {
+				notice = 'Surmakuupäev ei ole korrektne!';
+			} else if (deceasedDate > timeNow) {
+				notice = 'Surmakuupäev ei saa olla tulevikus!';
+			} else if (deceasedDate < bornDate) {
+				notice = 'Surmakuupäev ei saa olla varasem kui sünnikuupäev!';
+			}
+		}
 	}
+
+	if (notice !== '') {
+		return res.render('lisa_film_inimesed', {
+			notice: notice,
+			firstNameInput: firstName,
+			lastNameInput: lastName,
+			bornInput: bornDateText,
+			deceasedInput: deceasedDateText
+		});
+	}
+
+	let finalDeceasedDate = deceasedDateText !== '' ? deceasedDateText : null;
 	let conn;
-	try{
+	try {
 		conn = await mysql.createConnection({
-			host: process.env.DB_HOST, 
-			user: process.env.DB_USER, 
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
 			password: process.env.DB_PASS,
 			database: process.env.DB_DATABASE
 		});
+
 		let sqlReq = 'INSERT INTO person (first_name, last_name, born, deceased) VALUES (?,?,?,?)';
-		await conn.execute(sqlReq, [
-			req.body.firstNameInput, 
-			req.body.lastNameInput,
-			req.body.bornInput,
-			deceasedDate
-		])
-		res.render('lisa_film_inimesed', {notice: req.body.firstNameInput + ' ' + req.body.lastNameInput + ' ' + 'andmebaasi salvestatud.'});
+		await conn.execute(sqlReq, [firstName, lastName, bornDateText, finalDeceasedDate]);
+
+		res.render('lisa_film_inimesed', {
+			notice: `${firstName} ${lastName} edukalt andmebaasi salvestatud!`,
+			firstNameInput: null,
+			lastNameInput: null,
+			bornInput: null,
+			deceasedInput: null
+		});
+	} catch (err) {
+		console.log('Andmebaasiga suhtlemise viga: ' + err);
+		res.render('lisa_film_inimesed', {
+			notice: 'Tekkis viga ja andmeid ei salvestatud.',
+			firstNameInput: firstName,
+			lastNameInput: lastName,
+			bornInput: bornDateText,
+			deceasedInput: deceasedDateText
+		});
+	} finally {
+		if (conn) {
+			await conn.end();
+		}
 	}
-	catch(err){
-		console.log('Andmebaasiga suhtlemise viga: '+ err)
-		res.render('lisa_film_inimesed', {notice: 'Tekkis viga ja andmeid ei salvestatud.'});
+});
+
+// ==================== 2. FILMI LISAMINE ====================
+app.get('/eestifilm/lisa_film', (req, res) => {
+	res.render('lisa_film', {
+		notice: 'Ootan sisestust.',
+		titleInput: null,
+		releaseYearInput: null,
+		durationMinutesInput: null,
+		descriptionInput: null
+	});
+});
+
+app.post('/eestifilm/lisa_film', async (req, res) => {
+	const title = req.body.titleInput ? req.body.titleInput.trim() : '';
+	const releaseYear = req.body.releaseYearInput;
+	const durationMinutes = req.body.durationMinutesInput;
+	const description = req.body.descriptionInput ? req.body.descriptionInput.trim() : '';
+
+	let notice = '';
+	if (!title) {
+		notice = 'Filmi pealkiri on puudu!';
+	} else if (!releaseYear || isNaN(releaseYear) || releaseYear < 1888 || releaseYear > new Date().getFullYear()) {
+		notice = 'Palun sisesta korrektne väljaande aasta!';
+	} else if (!durationMinutes || isNaN(durationMinutes) || durationMinutes <= 0) {
+		notice = 'Palun sisesta korrektne kestus minutites!';
+	} else if (!description) {
+		notice = 'Filmi kirjeldus on puudu!';
 	}
-	finally {
-		if(conn) {
+
+	if (notice !== '') {
+		return res.render('lisa_film', {
+			notice: notice,
+			titleInput: title,
+			releaseYearInput: releaseYear,
+			durationMinutesInput: durationMinutes,
+			descriptionInput: description
+		});
+	}
+
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+
+		let sqlReq = 'INSERT INTO movie (title, release_year, duration_minutes, description) VALUES (?,?,?,?)';
+		await conn.execute(sqlReq, [title, releaseYear, durationMinutes, description]);
+
+		res.render('lisa_film', {
+			notice: `Film "${title}" edukalt lisatud!`,
+			titleInput: null,
+			releaseYearInput: null,
+			durationMinutesInput: null,
+			descriptionInput: null
+		});
+	} catch (err) {
+		console.log('Andmebaasi viga filmi salvestamisel: ' + err);
+		res.render('lisa_film', {
+			notice: 'Tekkis viga ja filmi ei salvestatud.',
+			titleInput: title,
+			releaseYearInput: releaseYear,
+			durationMinutesInput: durationMinutes,
+			descriptionInput: description
+		});
+	} finally {
+		if (conn) {
+			await conn.end();
+		}
+	}
+});
+
+// ==================== 3. AMETI LISAMINE ====================
+app.get('/eestifilm/lisa_amet', (req, res) => {
+	res.render('lisa_amet', {
+		notice: 'Ootan sisestust.',
+		titleInput: null,
+		descriptionInput: null
+	});
+});
+
+app.post('/eestifilm/lisa_amet', async (req, res) => {
+	const title = req.body.titleInput ? req.body.titleInput.trim() : '';
+	const description = req.body.descriptionInput ? req.body.descriptionInput.trim() : '';
+
+	let notice = '';
+	if (!title) {
+		notice = 'Ameti nimetus on sisestamata!';
+	} else if (!description) {
+		notice = 'Ameti kirjeldus on sisestamata!';
+	}
+
+	if (notice !== '') {
+		return res.render('lisa_amet', {
+			notice: notice,
+			titleInput: title,
+			descriptionInput: description
+		});
+	}
+
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+
+		let sqlReq = 'INSERT INTO profession (title, description) VALUES (?,?)';
+		await conn.execute(sqlReq, [title, description]);
+
+		res.render('lisa_amet', {
+			notice: `Amet "${title}" edukalt lisatud!`,
+			titleInput: null,
+			descriptionInput: null
+		});
+	} catch (err) {
+		console.log('Andmebaasi viga ameti salvestamisel: ' + err);
+		res.render('lisa_amet', {
+			notice: 'Tekkis viga ja ametit ei salvestatud.',
+			titleInput: title,
+			descriptionInput: description
+		});
+	} finally {
+		if (conn) {
 			await conn.end();
 		}
 	}

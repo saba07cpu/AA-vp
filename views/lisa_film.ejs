@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+	<meta charset="utf-8">
+	<title>Saba Sozashvili, veebiprogrammeerimine</title>
+	<style>img { max-width: 400px; height: auto; }</style>
+</head>
+<body>
+	<img src="../pics/veebiprogrammeerimine_2026_AA.png" alt="banner">	
+	<h1>Eesti film</h1>
+	<p>Siin saab lisada uue filmi.</p>
+
+	<ul>
+		<li><a href="/">Avalehele</a></li>
+		<li><a href="/eestifilm">Eesti filmi avalehele</a></li>
+	</ul>
+	<hr>
+	<h2>Lisa film</h2>
+	<form method="POST">
+		<label for="titleInput">Filmi pealkiri</label>
+		<input id="titleInput" name="titleInput" type="text" placeholder="Pealkiri" value="<%= titleInput %>">
+		<br>
+		<label for="releaseYearInput">Väljaande aasta</label>
+		<input id="releaseYearInput" name="releaseYearInput" type="number" placeholder="1978" value="<%= releaseYearInput %>">
+		<br>
+		<label for="durationMinutesInput">Kestus minutites</label>
+		<input id="durationMinutesInput" name="durationMinutesInput" type="number" placeholder="90" value="<%= durationMinutesInput %>">
+		<br>
+		<label for="descriptionInput">Kirjeldus</label>
+		<br>
+		<textarea id="descriptionInput" name="descriptionInput" rows="4" cols="50"><%= descriptionInput %></textarea>
+		<br>
+		<input id="movieSubmit" name="movieSubmit" type="submit" value="Salvesta film">
+	</form>
+	<p><%= notice %></p>
+	<hr>
+</body>
+</html>

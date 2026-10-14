@@ -1,10 +1,10 @@
 const express = require('express');
 const dateTimeET = require('./src/dateTimeET');
+const regTextRef = 'public/txt/visits.txt';
 const fs = require('fs').promises;
 const bodyparser= require('body-parser');
 const mysql = require('mysql2/promise')
 const textRef = 'public/txt/vanasonad.txt';
-const regTextRef = 'public/txt/visits.txt';
 require('dotenv').config();
 
 //käivitan express funktsiooni ja tähistan töötava asja nimega "app"
@@ -33,13 +33,15 @@ app.get('/vanasona', async (req, res)=>{
 		let folkWisdom = data.split(';');
 		let wisdom = folkWisdom[Math.round(Math.random()*(folkWisdom.length-1))];
 		res.render('wisdom', {wisdom: wisdom}); 
+		
 	}
 	catch(err){
 		console.log(err);
 		res.render('wisdom', {wisdom: 'Kahjuks ühtegi vanasõna ei leitud.'});
 	}
 });
-app.get('/regvisit', (req, res)=>{
+
+/* app.get('/regvisit', (req, res)=>{
 	res.render('regvisit');
 });
 app.post('/regvisit', async (req, res)=>{
@@ -58,10 +60,10 @@ app.post('/regvisit', async (req, res)=>{
 		console.log(err);
 		res.render('regvisit');
 	}
-});
+}); */
 
 	// PUNKT 3: UUS MARSRUUT /visitlog (VIIMASE KÜLASTUSE NÄITAMINE)
-app.get('/visitlog', async (req, res) => {
+/* app.get('/visitlog', async (req, res) => {
 	try {
 		const data = await fs.readFile(regTextRef, 'utf8');
 		// splitime teksti semikoolonite järgi
@@ -90,13 +92,20 @@ app.get('/visitlog', async (req, res) => {
 		console.log(err);
 		res.render('visitlog', { lastVisitInfo: 'Külastuste faili lugemisel tekkis viga või fail on tühi.' });
 	}
-});
-app.get('/eestifilm', (req, res)=>{
+}); */
+
+//-------ruuterid------
+const visitRouter = require('./routes/visitRoutes');
+const eestifilmRouter = require('./routes/eestifilmRoutes');
+app.use('/visit', visitRouter);
+app.use('/eestifilm', eestifilmRouter);
+
+/* app.get('/eestifilm', (req, res)=>{
 	res.render('eestifilm');
 	
-});
+}); */
 
-app.get('/eestifilm/film_inimesed', async (req, res)=>{
+/*app.get('/eestifilm/film_inimesed', async (req, res)=>{
 	let conn;
 	try {
 		conn = await mysql.createConnection({
@@ -121,8 +130,8 @@ app.get('/eestifilm/film_inimesed', async (req, res)=>{
 			await conn.end();
 		}
 	}
-});
-app.get('/eestifilm/lisa_film_inimesed', (req, res) => {
+}); */
+/* app.get('/eestifilm/lisa_film_inimesed', (req, res) => {
 	res.render('lisa_film_inimesed', {
 		notice: 'Ootan sisestust.',
 		firstNameInput: null,
@@ -130,9 +139,9 @@ app.get('/eestifilm/lisa_film_inimesed', (req, res) => {
 		bornInput: null,
 		deceasedInput: null
 	});
-});
+}); */
 
-app.post('/eestifilm/lisa_film_inimesed', async (req, res) => {
+/* app.post('/eestifilm/lisa_film_inimesed', async (req, res) => {
 	const firstName = req.body.firstNameInput ? req.body.firstNameInput.trim() : '';
 	const lastName = req.body.lastNameInput ? req.body.lastNameInput.trim() : '';
 	const bornDateText = req.body.bornInput;
@@ -210,10 +219,10 @@ app.post('/eestifilm/lisa_film_inimesed', async (req, res) => {
 			await conn.end();
 		}
 	}
-});
+}); */
 
 // ==================== 2. FILMI LISAMINE ====================
-app.get('/eestifilm/lisa_film', (req, res) => {
+/*app.get('/eestifilm/lisa_film', (req, res) => {
 	res.render('lisa_film', {
 		notice: 'Ootan sisestust.',
 		titleInput: null,
@@ -286,7 +295,7 @@ app.post('/eestifilm/lisa_film', async (req, res) => {
 });
 
 // ==================== 3. AMETI LISAMINE ====================
-app.get('/eestifilm/lisa_amet', (req, res) => {
+/* app.get('/eestifilm/lisa_amet', (req, res) => {
 	res.render('lisa_amet', {
 		notice: 'Ootan sisestust.',
 		titleInput: null,
@@ -342,5 +351,5 @@ app.post('/eestifilm/lisa_amet', async (req, res) => {
 			await conn.end();
 		}
 	}
-});
+}); */
 app.listen(5317); 

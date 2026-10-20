@@ -278,6 +278,140 @@ const eestifilmLisaAmetPost = async (req, res) => {
 		}
 	}
 };
+//@desc form for adding relations
+//@route GET /eestifilm/lisa_seos
+//@access public
+const eestifilmLisaSeos = async (req, res) => {
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+
+		const [persons] = await conn.execute('SELECT id, first_name, last_name FROM person');
+		const [movies] = await conn.execute('SELECT id, title FROM movie');
+		const [professions] = await conn.execute('SELECT id, title FROM profession');
+
+		res.render('lisa_seos', {
+			notice: 'Ootan valikuid.',
+			personList: persons,
+			movieList: movies,
+			professionList: professions
+		});
+	} catch (err) {
+		console.log('Viga andmete lugemisel seose vormi jaoks: ' + err);
+		res.render('lisa_seos', {
+			notice: 'Andmete laadimisel tekkis viga.',
+			personList: [],
+			movieList: [],
+			professionList: []
+		});
+	} finally {
+		if (conn) await conn.end();
+	}
+};
+
+//@desc submit a new relation with duplicate check and character name
+//@route POST /eestifilm/lisa_seos
+//@access public
+const eestifilmLisaSeosPost = async (req, res) => {
+	const personId = req.body.personSelect;
+	const movieId = req.body.movieSelect;
+	const positionId = req.body.positionSelect;
+	const characterInput = req.body.characterInput ? req.body.characterInput.trim() : '';
+
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+
+		const [persons] = await conn.execute('SELECT id, first_name, last_name FROM person');
+		const [movies] = await conn.execute('SELECT id, title FROM movie');
+		const [professions] = await conn.execute('SELECT id, title FROM profession');
+
+		if (!personId || !movieId || !positionId) {
+			return res.render('lisa_seos', {
+				notice: 'Palun vali kõigist rippmenüüdest väärtused!',
+				personList: persons,
+				movieList: movies,
+				positionList: professions
+			});
+		}
+
+		// Duplikaadi kontroll
+		let checkSql = 'SELECT * FROM person_in_movie WHERE person_id = ? AND movie_id = ? AND position_id = ?';
+		const [existingRelation] = await conn.execute(checkSql, [personId, movieId, positionId]);
+
+		if (existingRelation.length > 0) {
+			return res.render('lisa_seos', {
+				notice: 'Täpselt selline seos on juba andmebaasis olemas!',
+				personList: persons,
+				movieList: movies,
+				positionList: professions
+			});
+		}
+
+		let characterName = characterInput !== '' ? characterInput : null;
+
+		let insertSql = 'INSERT INTO person_in_movie (person_id, movie_id, position_id, character_name) VALUES (?,?,?,?)';
+		await conn.execute(insertSql, [personId, movieId, positionId, characterName]);
+
+		res.render('lisa_seos', {
+			notice: 'Uus seos edukalt andmebaasi lisatud!',
+			personList: persons,
+			movieList: movies,
+			positionList: professions
+		});
+	} catch (err) {
+		console.log('Andmebaasi viga seose salvestamisel: ' + err);
+		res.render('lisa_seos', {
+			notice: 'Tekkis viga ja seost ei salvestatud.',
+			personList: [],
+			movieList: [],
+			positionList: []
+		});
+	} finally {
+		if (conn) await conn.end();
+	}
+};
+
+//@desc list all relations
+//@route GET /eestifilm/seosed
+//@access public
+const eestifilmSeosed = async (req, res) => {
+	let conn;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_DATABASE
+		});
+
+		let sqlReq = `
+			SELECT person.first_name, person.last_name, movie.title AS movie_title, profession.title, person_in_movie.character_name
+			FROM person_in_movie
+			JOIN person ON person_in_movie.person_id = person.id
+			JOIN movie ON person_in_movie.movie_id = movie.id
+			JOIN profession ON person_in_movie.position_id = profession.id
+		`;
+		const [sqlRes] = await conn.execute(sqlReq);
+
+		res.render('seosed', { relationList: sqlRes });
+	} catch (err) {
+		console.log('Viga seoste lugemisel: ' + err);
+		res.render('seosed', { relationList: [] });
+	} finally {
+		if (conn) await conn.end();
+	}
+};
 module.exports = {
 	eestifilm,
 	eestifilmInimesed,
@@ -286,5 +420,8 @@ module.exports = {
 	eestifilmLisaFilm,
 	eestifilmLisaFilmPost,
 	eestifilmLisaAmet,
-	eestifilmLisaAmetPost
+	eestifilmLisaAmetPost,
+	eestifilmLisaSeos,
+	eestifilmLisaSeosPost,
+	eestifilmSeosed
 };

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+	<meta charset="utf-8">
+	<title>Saba Sozashvili, veebiprogrammeerimine</title>
+	<style>img { max-width: 400px; height: auto; }</style>
+</head>
+<body>
+	<img src="../pics/veebiprogrammeerimine_2026_AA.png" alt="banner">
+	<h1>Eesti film</h1>
+	<p>Siin saab lisada filmi, inimese ja ameti vahelise seose.</p>
+
+<ul>
+	<li><a href="/">Avalehele</a></li>
+	<li><a href="/eestifilm">Eesti filmi avalehele</a></li>
+	<li><a href="/eestifilm/seosed">Vaata olemasolevaid seoseid</a></li>
+</ul>
+<hr>
+<h2>Lisa uus seos</h2>
+<form method="POST">
+//inimese valik 
+		<label for="personSelect">Isik:</label>
+		<select id="personSelect" name="personSelect">
+			<option selected disabled>Vali isik...</option>
+			<% personList.forEach(function(person) { %>
+				<option value="<%= person.id %>"><%= person.first_name %> <%= person.last_name %></option>
+			<% }); %>
+		</select>
+		<br><br>
+<!-- filmi valik -->
+		<label for = "movieSelect">Film:</label>
+		<select id="movieSelect" name="movieSelect">
+			<option selected disabled>Vali film...</option>
+			<% movieList.forEach(function(movie) { %>
+				<option value="<%= movie.id %>"><%= movie.title %></option> 
+			<% }); %>
+		</select>
+		<br><br>
+<!-- ameti valik -->
+		<label for = "professionSelect">Amet:</label>
+		<select id="professionSelect" name="professionSelect">
+			<option selected disabled>Vali amet...</option>
+			<% professionList.forEach(function(profession) { %>
+				<option value="<%= profession.id %>"><%= profession.profession %></option>
+			<% }); %>
+		</select>
+<!-- tegelase valik -->
+<label for="characterInput">Tegelaskuju nimi (kui on näitleja):</label>
+		<input id="characterInput" name="characterInput" type="text" placeholder="Tegelase nimi...">
+		<br><br>		
+		
+		<input type="submit" value="Salvesta seos">
+	</form>
+	<p><%= notice %></p>
+	<hr>
+</body>
+</html>
+
+
+

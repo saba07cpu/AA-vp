@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+	<meta charset="utf-8">
+	<title>Saba Sozashvili, veebiprogrammeerimine</title>
+	<style>img { max-width: 400px; height: auto; }</style>
+</head>
+<body>
+	<img src="../pics/veebiprogrammeerimine_2026_AA.png" alt="banner">
+	<h1>Eesti film</h1>
+	<p>Filmidega seotud isikud ja nende rollid.</p>
+
+	<ul>
+		<li><a href="/">Avalehele</a></li>
+		<li><a href="/eestifilm">Eesti filmi avalehele</a></li>
+		<li><a href="/eestifilm/lisa_seos">Lisa uus seos</a></li>
+	</ul>
+	<hr>
+	<h2>Olemasolevad seosed</h2>
+
+	<ol>
+		<% relationList.forEach(function(relation) { %>
+			<li>
+				<%= relation.first_name %> <%= relation.last_name %> | Roll: <%= relation.title %> | Film: "<%= relation.movie_title %>" | Tegelane: <%= relation.character_name || 'puudub' %>
+			</li>
+		<% }); %>
+	</ol>
+
+	<hr>
+</body>
+</html>

@@ -97,8 +97,10 @@ app.post('/regvisit', async (req, res)=>{
 //-------ruuterid------
 const visitRouter = require('./routes/visitRoutes');
 const eestifilmRouter = require('./routes/eestifilmRoutes');
+const galleryPhotoUploadRouter = require('./routes/galleryPhotoUploadRoutes');
 app.use('/visit', visitRouter);
 app.use('/eestifilm', eestifilmRouter);
+app.use('/galleryPhotoUpload', galleryPhotoUploadRouter);
 
 /* app.get('/eestifilm', (req, res)=>{
 	res.render('eestifilm');

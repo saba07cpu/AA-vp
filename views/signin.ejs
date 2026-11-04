@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8">
+    <title>Saba Sozashvili, veebiprogrammeerimine</title>
+    <style>
+        img { max-width: 400px; height: auto; }
+    </style>
+</head>
+<body>
+    <img src="../pics/veebiprogrammeerimine_2026_AA.png" alt="bänner">
+    <h1>Sisselogimine</h1>
+    <hr>
+    
+    <form method="POST">
+        <label for="emailInput">E-mail:</label><br>
+        <input type="email" id="emailInput" name="emailInput" placeholder="Sinu e-mail ...." required>
+        <br><br>
+
+        <label for="passwordInput">Salasõna:</label><br>
+        <input type="password" id="passwordInput" name="passwordInput" required>
+        <br><br>
+
+        <input type="submit" id="userSubmit" name="userSubmit" value="Logi sisse">
+    </form>
+
+    <p><%= notice %></p>
+    <hr>
+    <p><a href="/">Tagasi avalehele</a></p>
+</body>
+</html>

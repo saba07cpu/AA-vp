@@ -21,19 +21,23 @@ const galleryPhotoUploadPost = async (req, res) => {
         const fileName = 'vp_' + Date.now() + '.jpg';
         
         // Nimetame ajutise multeri faili ümber
-        await fs.rename(req.file.path, req.file.destination + fileName);
+        await fs.rename(req.file.path, process.env.UPLOAD_ORIGINAL_PATH + fileName);
         
-        // Suur pilt (max 800x600)
-        await sharp(req.file.destination + fileName)
+        // Suur pilt (max 800x600) + vesimärk paremas all nurgas
+        await sharp(process.env.UPLOAD_ORIGINAL_PATH + fileName)
             .resize(800, 600)
+            .composite([{
+                input: './public/pics/vp_logo_small.png',
+                gravity: 'southeast' // paneb vesimärgi all paremale nurka
+            }])
             .jpeg({ quality: 90 })
-            .toFile('./public/gallery/normal/' + fileName);
+            .toFile(process.env.UPLOAD_RESIZED_PATH + fileName);
             
         // Pisipilt / thumbnail (100x100)
-        await sharp(req.file.destination + fileName)
+        await sharp(process.env.UPLOAD_ORIGINAL_PATH + fileName)
             .resize(100, 100)
             .jpeg({ quality: 90 })
-            .toFile('./public/gallery/thumbs/' + fileName);
+            .toFile(process.env.UPLOAD_THUMBNAIL_PATH + fileName);
             
         let sqlReq = 'INSERT INTO galleryphotos (filename, origname, alttext, privacy, userid) VALUES (?,?,?,?,?)';
         const userId = 1; // Ajutine ID

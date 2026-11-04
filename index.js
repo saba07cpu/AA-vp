@@ -16,13 +16,82 @@ app.use(express.static('public'));
 	//hakkame päringuid parsima
 app.use(bodyparser.urlencoded({extended: false}));
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
 	//res.send('Express.js veeb käivitus!');
 	const day = dateTimeET.weekdayET()
 	const date = dateTimeET.dateET(0)
 	const time = dateTimeET.timeET()
-	res.render('index', {day: day, date: date, time: time});
+	
+
+	let conn;
+    let latestPhoto = null;
+    try {
+        conn = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_DATABASE,
+            charset: 'utf8mb4' // Lisatud charset, et toetada erimärke
+        });
+        
+        // Õppejõud antud täpne SQL päring:
+        const sqlReq = 'SELECT filename, alttext FROM galleryphotos WHERE id=(SELECT MAX(id) FROM galleryphotos WHERE privacy=3 AND deleted IS NULL)';
+        const [rows] = await conn.execute(sqlReq);
+        
+        if (rows.length > 0) {
+            latestPhoto = rows[0];
+        }
+    } catch (err) {
+        console.log('Viga avalehe foto laadimisel: ' + err);
+    } finally {
+        if (conn) {
+            await conn.end();
+        }
+    }
+    
+    // Saadad res.render-ile kaasa oma senised muutujad + latestPhoto
+    res.render('index', { 
+        day: day, 
+        date: date, 
+        time: time,
+        latestPhoto: latestPhoto 
+    });
 });
+
+app.get('/home', (req, res) => {
+	res.redirect('/');
+});
+
+app.get('/logout', (req, res) => {
+	res.redirect('/');
+});
+
+app.get('/gallery', async (req, res) => {
+    let conn;
+    let photos = [];
+    try {
+        conn = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_DATABASE
+        });
+        
+        // Siin ongi see õige tingimus: privacy >= 2
+        const sqlReq = 'SELECT filename, alttext FROM galleryphotos WHERE privacy >= 2 AND deleted IS NULL ORDER BY id DESC';
+        const [rows] = await conn.execute(sqlReq);
+        photos = rows;
+    } catch (err) {
+        console.log('Viga galerii laadimisel: ' + err);
+    } finally {
+        if (conn) {
+            await conn.end();
+        }
+    }
+    
+    res.render('gallery', { photos: photos });
+});
+
 // Marsruut /tlu
 app.get('/tlu', (req, res) => {
 	res.render('tlu');
@@ -98,9 +167,15 @@ app.post('/regvisit', async (req, res)=>{
 const visitRouter = require('./routes/visitRoutes');
 const eestifilmRouter = require('./routes/eestifilmRoutes');
 const galleryPhotoUploadRouter = require('./routes/galleryPhotoUploadRoutes');
+const galleryRouter = require('./routes/galleryRoutes');
+const signupRouter = require('./routes/signupRoutes');
+const signinRouter = require('./routes/signinRoutes');
 app.use('/visit', visitRouter);
 app.use('/eestifilm', eestifilmRouter);
 app.use('/galleryPhotoUpload', galleryPhotoUploadRouter);
+app.use('/gallery', galleryRouter);
+app.use('/signup', signupRouter);
+app.use('/signin', signinRouter);
 
 /* app.get('/eestifilm', (req, res)=>{
 	res.render('eestifilm');

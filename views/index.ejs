@@ -6,19 +6,29 @@
 	<style>img { max-width: 400px; height: auto; }</style>
 </head>
 <body>
-	<img src="pics/veebiprogrammeerimine_2026_AA.png" alt="banner">	<h1>Saba Sozashvili, veebiprogrammeerimine</h1>
-	 <p>See leht on loodud veebiprogrammeerimise kursusel <a href="https://www.tlu.ee">Tallinna Ülikoolis</a> ning ei sislda tõsiseltvõetavat sisu!</p>
+	<img src="pics/veebiprogrammeerimine_2026_AA.png" alt="veebiprogrammeerimise AA rühma banner">
+	<h1>Saba Sozashvili, veebiprogrammeerimine</h1>
+	 <p>See leht on loodud veebiprogrammeerimise kursusel <a href="https://www.tlu.ee">Tallinna Ülikoolis</a> ning ei sisalda tõsiseltvõetavat sisu!</p>
 	<p>Esialgu tutvusime lihtsalt HTML keelega, peatselt programmeerime.</p>
 	<hr>
 	<p>Täna on <%= day %>, <%= date %>, veebileht avati: <%= time %>.</p>
 	<ul>
+		<li><a href="/signup">Kasutajakonto loomine</a></li>
+		<li><a href="/signin">Sisene</a></li>
+		<br>
 		<li><a href="/tlu">Tallinna Ülikool</a></li>
 		<li><a href="/vanasona">Vanasõna</a></li>
 		<li><a href="/visit">Külastuste avaleht</a></li>
 		<li><a href="/visit/reg">Registreeri külastus</a></li>
 		<li><a href="/eestifilm">Eesti film</a></li>
-		<li><a href="/galleryPhotoUpload">Galeriipiltide üleslaadimine</a></li>
 	</ul>
 
+    <hr>
+    <h2>Uusim avalik foto</h2>
+    <% if (latestPhoto) { %>
+        <img src="/gallery/normal/<%= latestPhoto.filename %>" alt="<%= latestPhoto.alttext || 'Uusim avalik foto' %>">
+    <% } else { %>
+        <p>Avalikke pilte pole veel laetud.</p>
+    <% } %>
 </body>
 </html>

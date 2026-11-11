@@ -40,8 +40,8 @@ const galleryPhotoUploadPost = async (req, res) => {
             .toFile(process.env.UPLOAD_THUMBNAIL_PATH + fileName);
             
         let sqlReq = 'INSERT INTO galleryphotos (filename, origname, alttext, privacy, userid) VALUES (?,?,?,?,?)';
-        const userId = 1; // Ajutine ID
-        
+       // const userId = 1; // Ajutine ID
+        const userId = req.session.userId; // Kasutaja ID sessioonist
         conn = await mysql.createConnection({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,

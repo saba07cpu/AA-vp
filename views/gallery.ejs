@@ -3,19 +3,33 @@
 <head>
     <meta charset="utf-8">
     <title>Fotogalerii</title>
+    <link rel="stylesheet" href="/style/gallery.css">
+    <script src = "/script/gallery.js" defer></script>
 </head>
 <body>
     <h1>Fotogalerii</h1>
     <p><a href="/home">Tagasi avalehele</a></p>
     <hr>
+    <!-- dialoogiaken normaalsuuruses fotode näitamiseks -->
+<dialog id="modal" class="modalarea">
+    <span id="modalClose" class="modalclose">&times;</span>
+    <div class="modalhorizontal">
+        <div class="modalvertical">
+            <img id="modalImage" src="..//pics/empty.png" alt="">
+            <p id="modalCaption"></p>
+        </div>
+    </div>
+</dialog>
 
-    <% if (photos && photos.length > 0) { %>
-        <% photos.forEach(photo => { %>
-            <img src="/gallery/thumbs/<%= photo.filename %>" alt="<%= photo.alttext || 'Galeriipilt' %>">
-        <% }); %>
-    <% } else { %>
-        <p>Pilte ei leitud.</p>
-    <% } %>
+    <div id ="gallery">
+        <% if (galleryData && galleryData.length > 0) { %>
+            <% galleryData.forEach(photo => { %>
+                <img src="<%= imagehref %><%= photo.src %>" alt="<%= photo.alt %>" data-id ="<%= photo.id %>" data-filename="<%= photo.src %>" class="thumbs">
+            <% }); %>
+        <% } else { %>
+            <p>Pilte ei leitud.</p>
+        <% } %>
+    </div>
 
 </body>
 </html>

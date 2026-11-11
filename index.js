@@ -4,6 +4,11 @@ const regTextRef = 'public/txt/visits.txt';
 const fs = require('fs').promises;
 const bodyparser= require('body-parser');
 const mysql = require('mysql2/promise')
+//sessiooni moodul
+const session = require('express-session');
+const MySQlStore = require('express-mysql-session')(session);
+//sisselogimise kontrolli vahevara
+const checkLogin = require('./src/checkLogin');
 const textRef = 'public/txt/vanasonad.txt';
 require('dotenv').config();
 
@@ -15,6 +20,31 @@ app.set('view engine','ejs');
 app.use(express.static('public'));
 	//hakkame päringuid parsima
 app.use(bodyparser.urlencoded({extended: false}));
+
+//määrame sessiooni alguse
+// esimene variant kasutas default sessiooni salvestamist mälus, mis on ebaturvaline ja ei toimi mitme serveri puhul
+// app.use(session({
+//     secret: process.env.SES_SECRET,
+//     resave: true,
+//     saveUninitialized: false
+// }));
+const sessionStore = new MySQlStore({
+	host: process.env.DB_HOST,
+	user: process.env.DB_USER,
+	password: process.env.DB_PASS,
+	database: process.env.DB_DATABASE
+});
+
+app.use(session({
+    secret: process.env.SES_SECRET,
+	store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+	cookies: {
+		// kaua ta kestab. ms*s*min*h. see alumine sessiooni aeg aegub tunniga
+		maxAge: 1000 * 60 * 60 * 1 
+	}
+}));
 
 app.get('/', async (req, res) => {
 	//res.send('Express.js veeb käivitus!');
@@ -58,17 +88,19 @@ app.get('/', async (req, res) => {
     });
 });
 
-app.get('/home', (req, res) => {
-	res.redirect('/');
+app.get(['/checkLogin', '/home'], checkLogin.isLogin, (req, res) => {
+	res.render('home');
 });
 
 app.get('/logout', (req, res) => {
+	req.session.destroy();
 	res.redirect('/');
 });
 
 app.get('/gallery', async (req, res) => {
     let conn;
     let photos = [];
+    let galleryData = [];
     try {
         conn = await mysql.createConnection({
             host: process.env.DB_HOST,
@@ -77,10 +109,14 @@ app.get('/gallery', async (req, res) => {
             database: process.env.DB_DATABASE
         });
         
-        // Siin ongi see õige tingimus: privacy >= 2
-        const sqlReq = 'SELECT filename, alttext FROM galleryphotos WHERE privacy >= 2 AND deleted IS NULL ORDER BY id DESC';
-        const [rows] = await conn.execute(sqlReq);
-        photos = rows;
+        const sqlReq = 'SELECT id, filename, alttext FROM galleryphotos WHERE privacy >= ? AND deleted IS NULL ORDER BY id DESC';
+        const privacy = 2;
+        [photos] = await conn.execute(sqlReq, [privacy]);
+        galleryData = photos.map((photo) => ({
+            id: photo.id,
+            src: photo.filename,
+            alt: photo.alttext || 'Galeriipilt'
+        }));
     } catch (err) {
         console.log('Viga galerii laadimisel: ' + err);
     } finally {
@@ -89,7 +125,11 @@ app.get('/gallery', async (req, res) => {
         }
     }
     
-    res.render('gallery', { photos: photos });
+    res.render('gallery', {
+        photos,
+        galleryData,
+        imagehref: process.env.GALLERY_THUMBNAIL || '/gallery/thumbs/'
+    });
 });
 
 // Marsruut /tlu

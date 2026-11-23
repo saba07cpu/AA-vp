@@ -97,7 +97,7 @@ app.get('/logout', (req, res) => {
 	res.redirect('/');
 });
 
-app.get('/gallery', async (req, res) => {
+/*app.get('/gallery', async (req, res) => {
     let conn;
     let photos = [];
     let galleryData = [];
@@ -128,9 +128,9 @@ app.get('/gallery', async (req, res) => {
     res.render('gallery', {
         photos,
         galleryData,
-        imagehref: process.env.GALLERY_THUMBNAIL || '/gallery/thumbs/'
+        imagehref: process.env.GALLERY_THUMBS || '/gallery/thumbs/',
     });
-});
+}); */
 
 // Marsruut /tlu
 app.get('/tlu', (req, res) => {
@@ -150,7 +150,7 @@ app.get('/vanasona', async (req, res)=>{
 	}
 });
 
-/* app.get('/regvisit', (req, res)=>{
+app.get('/regvisit', (req, res)=>{
 	res.render('regvisit');
 });
 app.post('/regvisit', async (req, res)=>{
@@ -169,7 +169,7 @@ app.post('/regvisit', async (req, res)=>{
 		console.log(err);
 		res.render('regvisit');
 	}
-}); */
+}); 
 
 	// PUNKT 3: UUS MARSRUUT /visitlog (VIIMASE KÜLASTUSE NÄITAMINE)
 /* app.get('/visitlog', async (req, res) => {

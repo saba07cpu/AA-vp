@@ -1,9 +1,18 @@
 const express = require('express');
-const router = express.Router();
-const galleryController = require('../controllers/galleryControllers');
 const checkLogin = require('../src/checkLogin');
 
+const router = express.Router();
 router.use(checkLogin.isLogin);
-router.get('/', galleryController.getGallery);
+
+//kasutatavad kontrollerid
+const {
+	galleryHome,
+    myGalleryPage,
+    galleryPage
+	} = require('../controllers/galleryControllers');
+
+router.route('/').get(galleryHome);
+router.route('/my').get(myGalleryPage);
+router.route('/:page').get(galleryPage);
 
 module.exports = router;

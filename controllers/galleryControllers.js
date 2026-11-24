@@ -123,9 +123,93 @@ const myGalleryPage = async (req, res) => {
 	
 	//res.render('gallery');
 };
+const editPhotoPage = async (req, res) => {
+const photoId = req.params.id;
+const userId = req.session.userId;
+let conn;
+
+try {
+    conn = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_DATABASE
+    });
+
+    const sql = `
+        SELECT id, filename, privacy, alttext
+        FROM galleryphotos
+        WHERE id = ? AND userid = ? AND deleted IS NULL
+    `;
+    const [photos] = await conn.execute(sql, [photoId, userId]);
+    const photo = photos[0];
+
+    if (!photo) {
+        return res.status(404).send('Fotot ei leitud.');
+    }
+
+    res.render('editphoto', {
+        photo,
+        imagehref: process.env.GALLERY_NORMAL
+    });
+} catch (err) {
+    console.error(err);
+    res.status(500).send('Foto laadimine ebaõnnestus.');
+} finally {
+    if (conn) {
+        await conn.end();
+    }
+}
+};
+
+const savePhoto = async (req, res) => {
+    const photoId = req.params.id;
+    const userId = req.session.userId;
+    const { privacy, alttext, photoDelete } = req.body ?? {};
+    const deleting = photoDelete === '1';
+
+    if (!/^[1-9][0-9]*$/.test(photoId)) {
+        return res.status(400).send('Foto ID on vigane.');
+    }
+    if (!deleting && (!['1', '2', '3'].includes(privacy) || typeof alttext !== 'string')) {
+        return res.status(400).send('Vormi andmed on vigased.');
+    }
+
+    let conn;
+    try {
+        conn = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_DATABASE
+        });
+
+        const ownerFilter = 'WHERE id = ? AND userid = ? AND deleted IS NULL';
+        const sql = deleting
+            ? 'UPDATE galleryphotos SET deleted = NOW() ' + ownerFilter
+            : 'UPDATE galleryphotos SET privacy = ?, alttext = ? ' + ownerFilter;
+        const values = deleting ? [photoId, userId] : [Number(privacy), alttext, photoId, userId];
+        const [result] = await conn.execute(sql, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Fotot ei leitud.');
+        }
+
+        res.redirect(303, deleting ? '/gallery/my' : '/gallery/my/edit/' + photoId);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(deleting ? 'Foto kustutamine ebaõnnestus.' : 'Foto salvestamine ebaõnnestus.');
+    } finally {
+        if (conn) {
+            await conn.end();
+        }
+    }
+};
 
 module.exports = {
     galleryHome,
     myGalleryPage,
-    galleryPage
+    galleryPage,
+    editPhotoPage,
+    savePhoto
 };

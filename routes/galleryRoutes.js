@@ -8,11 +8,16 @@ router.use(checkLogin.isLogin);
 const {
 	galleryHome,
     myGalleryPage,
-    galleryPage
+    galleryPage,
+    editPhotoPage,
+    savePhoto
 	} = require('../controllers/galleryControllers');
 
 router.route('/').get(galleryHome);
 router.route('/my').get(myGalleryPage);
+router.route('/my/edit/:id')
+    .get(editPhotoPage)
+    .post(savePhoto);
 router.route('/:page').get(galleryPage);
 
 module.exports = router;

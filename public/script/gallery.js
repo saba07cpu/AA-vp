@@ -10,7 +10,7 @@ window.onload = function() {
 function openModal(event) {
     // Implementation for opening modal
     document.querySelector("#modalImage").src = "/gallery/normal/" + event.target.dataset.filename;
-    document.querySelector("#modalCaption").innerHTML = event.target.alt;
+    document.querySelector("#modalCaption").textContent = event.target.alt;
     document.querySelector("#modal").showModal();
 }
 
@@ -18,5 +18,5 @@ function closeModal() {
     // Implementation for closing modal
     document.querySelector("#modal").close();
     document.querySelector("#modalImage").src= "../pics/empty.png";
-    document.querySelector("#modalCaption").innerHTML = "Galeriipilt";
+    document.querySelector("#modalCaption").textContent = "Galeriipilt";
 }

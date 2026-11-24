@@ -1,0 +1,18 @@
+<img src="<%= imagehref %><%= photo.filename %>" alt="<%= photo.alttext ?? '' %>">
+
+<form method="POST">
+    <label for="alttext">Pildi kirjeldus</label>
+    <input id="alttext" name="alttext" value="<%= photo.alttext ?? '' %>">
+    <label for="privacy">Foto nähtavus</label>
+    <select id="privacy" name="privacy">
+        <option value="1" <%= Number(photo.privacy) === 1 ? 'selected' : '' %>>Privaatne (ainult ise näen)</option>
+        <option value="2" <%= Number(photo.privacy) === 2 ? 'selected' : '' %>>Sisseloginud kasutajatele</option>
+        <option value="3" <%= Number(photo.privacy) === 3 ? 'selected' : '' %>>Avalik (kõik näevad)</option>
+    </select>
+
+    <button type="submit">Salvesta</button>
+</form>
+
+<form method="POST">
+    <button type="submit" name="photoDelete" value="1">Kustuta foto</button>
+</form>

@@ -17,7 +17,9 @@
 	
 	<div id="gallery" class="gallery">
 		<% galleryData.forEach(function(image){ %>
+		<a href="/gallery/my/edit/<%=image.id%>">
 		  <img src="<%=imagehref%><%=image.src%>" alt="<%=image.alt%>">
+		</a>
 		<% }); %>
 	</div>
 </body>
